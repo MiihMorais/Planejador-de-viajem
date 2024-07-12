@@ -23,7 +23,7 @@ const buttonVariants = tv ({
 })
 
 interface ButtonProps extends ComponentProps<'button'>, VariantProps<typeof buttonVariants>{
-  children: ReactNode
+  children?: ReactNode
 }
 
 export function Button({ children, variant, size, ...props}: ButtonProps) {

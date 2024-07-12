@@ -10,15 +10,8 @@ input {
   color-scheme: dark;
 }
 
-rdp-day_selected {
-  background-color: #bef264 !important;
-  color: black !important;
-}
-
-.rdp-day_selected:hover {
-  background-color: #a0ca57 !important;
-}
-
-.rdp-button:hover {
-  background-color: #bef26466 !important;
+.rdp{
+  --rdp-accent-color: #BEF264; /* Accent color for the background of selected days. */
+  --rdp-background-color: #6a8538; /* Background color for the hovered/focused elements. */
+  --rdp-selected-color: #000; 
 }
