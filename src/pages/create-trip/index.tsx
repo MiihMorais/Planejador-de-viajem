@@ -1,16 +1,23 @@
-import {  useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { InviteGuestsModal } from './invite-guests-modal'
 import { ConfirmTripModal } from './confirm-trip-modal'
 import { DestinationAndDateStep } from './steps/destination-and-date-step'
 import { InviteGuestsStep } from './steps/invite-guests-step'
+import { DateRange } from 'react-day-picker'
+import { api } from '../../lib/axios'
 
 export function CreateTripPage() {
   const navigate = useNavigate()
 
   const [isGuestsInputOpen, setIsGuestsInputOpen] = useState(false)
   const [isGuestsModalOpen, setIsGuestsModalOpen] = useState(false)
-  const [isConfirmTripModalOpen,  setIsConfirmTripModalOpen] = useState(false)
+  const [isConfirmTripModalOpen, setIsConfirmTripModalOpen] = useState(false)
+
+  const [destination, setDestination] = useState('')
+  const [ownerName, setOwnerName] = useState('')
+  const [ownerEmail, setOwnerEmail] = useState('')
+  const [eventStartAndEndDates, setEventStartAndEndDates] = useState<DateRange | undefined>()
 
   const [emailsToInvite, setEmailsToInvite] = useState([
     'diego@rockeatseat.com.br',
@@ -70,10 +77,37 @@ export function CreateTripPage() {
     setEmailsToInvite(newEmailList)
   }
 
-  function createTrip(event: FormEvent<HTMLFormElement>) {
+  async function createTrip(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    navigate('/trips/123')
+    if(!destination) {
+      return
+    }
+
+    if(eventStartAndEndDates?.from || !eventStartAndEndDates?.to) {
+      return
+    }
+
+    if(emailsToInvite.length === 0) {
+      return
+    }
+
+    if(!ownerName || !ownerEmail) {
+      return
+    }
+
+    const response = await api.post('/trips', {
+      destination,
+      starts_at: eventStartAndEndDates.from,
+      ends_at: eventStartAndEndDates.to,
+      emails_to_invite: emailsToInvite,
+      owner_name: ownerName,
+      owner_email: ownerEmail
+    })
+
+    const{ tripId } = response.data
+
+    navigate(`/trips/${tripId}`)
   }
 
   return (
@@ -87,18 +121,21 @@ export function CreateTripPage() {
         </div>
 
         <div className="space-y-4">
-          <DestinationAndDateStep 
-          closeGuestsInput={closeGuestsInput}
-          isGuestsInputOpen={isGuestsInputOpen}
-          openGuestsInput={openGuestsInput}
+          <DestinationAndDateStep
+            closeGuestsInput={closeGuestsInput}
+            isGuestsInputOpen={isGuestsInputOpen}
+            openGuestsInput={openGuestsInput}
+            setDestination={setDestination}
+            eventStartAndEndDates={eventStartAndEndDates}
+            setEventStartAndEndDates={setEventStartAndEndDates}
           />
 
           {isGuestsInputOpen && (
-            <InviteGuestsStep 
-            openGuestsModal={openGuestsModal}
-            openConfirmTripModal={openConfirmTripModal}
-            emailsToInvite={emailsToInvite}
-           />
+            <InviteGuestsStep
+              openGuestsModal={openGuestsModal}
+              openConfirmTripModal={openConfirmTripModal}
+              emailsToInvite={emailsToInvite}
+            />
           )}
         </div>
 
@@ -110,18 +147,20 @@ export function CreateTripPage() {
       </div>
 
       {isGuestsModalOpen && (
-        <InviteGuestsModal 
-        emailsToInvite={emailsToInvite}
-        addNewEmailToInvite={addNewEmailToInvite}
-        closeGuestsModal={closeGuestsModal}
-        removeEmailFromInvites={removeEmailFromInvites}
+        <InviteGuestsModal
+          emailsToInvite={emailsToInvite}
+          addNewEmailToInvite={addNewEmailToInvite}
+          closeGuestsModal={closeGuestsModal}
+          removeEmailFromInvites={removeEmailFromInvites}
         />
       )}
 
       {isConfirmTripModalOpen && (
         <ConfirmTripModal
-        closeConfirmTripModal={closeConfirmTripModal}
-        createTrip={createTrip} 
+          closeConfirmTripModal={closeConfirmTripModal}
+          createTrip={createTrip}
+          setOwnerName={setOwnerName}
+          setOwnerEmail={setOwnerEmail}
         />
       )}
 
